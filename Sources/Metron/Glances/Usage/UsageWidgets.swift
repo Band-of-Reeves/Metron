@@ -95,14 +95,14 @@ struct UsageLarge: View {
                 }
             }
 
-            Spacer().frame(height: 12)
+            Spacer(minLength: 12)
 
             Text("ACTIVITY")
                 .font(Theme.rounded(8.5, .semibold))
                 .tracking(0.6)
                 .foregroundStyle(Theme.subtle)
                 .padding(.bottom, 6)
-            HeatmapView(history: store.history, weeks: 18, cell: 7, gap: 2.5, showsLegend: false)
+            HeatmapView(history: store.history, weeks: 18, cell: 9, gap: 3, showsLegend: false)
 
             if !store.history.modelTotalsThisWeek.isEmpty {
                 Spacer(minLength: 12)
