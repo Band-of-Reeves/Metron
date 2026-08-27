@@ -2,12 +2,17 @@ import SwiftUI
 
 /// The full Claude-usage readout: the menu bar popover, and the `.full` desk
 /// window for anyone who wants everything at once.
+///
+/// The header used to read "Metron", from when the app was only this panel.
+/// Metron is now the thing hosting four readouts, so its name belongs where
+/// the app is identified — Quit, the login item, the bundle — and each panel
+/// carries the name of the glance it actually is.
 struct PanelView: View {
     @ObservedObject var store: UsageStore
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            PanelHeader(store: store, title: "Metron")
+            PanelHeader(store: store)
 
             if let err = store.usage.error, store.usage.windows.isEmpty {
                 PanelError(message: err)
