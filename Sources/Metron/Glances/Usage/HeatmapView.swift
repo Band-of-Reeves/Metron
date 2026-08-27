@@ -5,9 +5,9 @@ import SwiftUI
 struct HeatmapView: View {
     let history: LocalHistory
     var weeks: Int = 18
-
-    private let cell: CGFloat = 12
-    private let gap: CGFloat = 3
+    var cell: CGFloat = 12
+    var gap: CGFloat = 3
+    var showsLegend = true
 
     private var cal: Calendar {
         var c = Calendar(identifier: .gregorian)
@@ -41,13 +41,18 @@ struct HeatmapView: View {
         df.dateFormat = "MMM"
         var out: [(Int, String)] = []
         var lastMonth = -1
+        // A three-letter month needs about 26pt; at widget cell sizes that is
+        // several columns, and without this two labels overprint each other.
+        let minGap = max(1, Int((26 / (cell + gap)).rounded(.up)))
+        var lastIndex = -minGap
         for (i, week) in grid.enumerated() {
             guard let first = week.first else { continue }
             let m = c.component(.month, from: first)
             if m != lastMonth {
                 // Only label when most of the month's column is still ahead.
-                if i == 0 || c.component(.day, from: first) <= 7 {
+                if (i == 0 || c.component(.day, from: first) <= 7), i - lastIndex >= minGap {
                     out.append((i, df.string(from: first)))
+                    lastIndex = i
                 }
                 lastMonth = m
             }
@@ -74,8 +79,8 @@ struct HeatmapView: View {
             .clipped()
             .padding(.leading, gutterWidth + 5)
 
-            HStack(alignment: .top, spacing: 5) {
-                weekdayGutter
+            HStack(alignment: .top, spacing: showsLegend ? 5 : 0) {
+                if showsLegend { weekdayGutter }
                 HStack(alignment: .top, spacing: gap) {
                     ForEach(Array(columns.enumerated()), id: \.offset) { _, week in
                         VStack(spacing: gap) {
@@ -87,13 +92,15 @@ struct HeatmapView: View {
                 }
             }
 
-            legend
-                .padding(.top, 3)
-                .padding(.leading, gutterWidth + 5)
+            if showsLegend {
+                legend
+                    .padding(.top, 3)
+                    .padding(.leading, gutterWidth + 5)
+            }
         }
     }
 
-    private let gutterWidth: CGFloat = 21
+    private var gutterWidth: CGFloat { showsLegend ? 21 : 0 }
 
     /// Mon / Wed / Fri markers, matching the grid's row rhythm.
     private var weekdayGutter: some View {

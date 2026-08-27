@@ -4,6 +4,8 @@ import SwiftUI
 /// measured in output tokens from local transcripts.
 struct ModelBreakdown: View {
     let totals: [String: Int]
+    /// Widget sizes get the bar and one row of legend, not the full grid.
+    var compact = false
 
     private static let palette: [Color] = [
         Color(red: 0.851, green: 0.467, blue: 0.341),  // coral
@@ -57,8 +59,9 @@ struct ModelBreakdown: View {
             .frame(height: 7)
 
             // Legend, two per row
-            let rows = stride(from: 0, to: items.count, by: 2).map {
-                Array(items[$0..<min($0 + 2, items.count)])
+            let legendItems = compact ? Array(items.prefix(2)) : items
+            let rows = stride(from: 0, to: legendItems.count, by: 2).map {
+                Array(legendItems[$0..<min($0 + 2, legendItems.count)])
             }
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
