@@ -62,6 +62,70 @@ enum PreviewRenderer {
         exit(0)
     }
 
+    /// `Metron --measure` checks that a popover ends up the same size as the
+    /// panel inside it, before and after data lands. A menu bar popover cannot
+    /// be screenshotted from a headless run, so this is how that regression
+    /// gets caught.
+    static func measure() -> Never {
+        NSApplication.shared.appearance = NSAppearance(named: .darkAqua)
+        var worst = 0.0
+
+        for store in GlanceRegistry.shared.all {
+            let popover = NSPopover()
+            let host = PopoverHost(
+                rootView: AnyView(
+                    GlancePopover(store: store).environment(\.glanceChrome, .popover)
+                )
+            )
+            host.popover = popover
+            popover.contentViewController = host
+            host.view.layoutSubtreeIfNeeded()
+            host.syncSize()
+            let empty = popover.contentSize.height
+
+            // Katechon's ssh probe is slow and offline here; the point of the
+            // check is the growth, which every glance shows.
+            if store.id != "katechon" {
+                settle(store: store, extraSamples: store is SystemStore ? 1 : 0)
+            }
+            host.view.layoutSubtreeIfNeeded()
+            host.syncSize()
+
+            let ideal = host.sizeThatFits(in: CGSize(width: Panel.width,
+                                                     height: .greatestFiniteMagnitude))
+            let bare = NSHostingView(rootView: AnyView(store.content(.full))).fittingSize
+
+            // Actually open it, against an offscreen anchor, and read back the
+            // height the hosting view really got. Comparing that with the
+            // panel's own height is the whole test: they differ exactly when
+            // the popover clips.
+            let window = NSWindow(contentRect: NSRect(x: -4000, y: -4000, width: 120, height: 40),
+                                  styleMask: [.borderless], backing: .buffered, defer: false)
+            let anchor = NSView(frame: NSRect(x: 0, y: 0, width: 20, height: 20))
+            window.contentView?.addSubview(anchor)
+            window.orderFrontRegardless()
+            popover.show(relativeTo: anchor.bounds, of: anchor, preferredEdge: .maxY)
+            for _ in 0..<10 {
+                RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.02))
+            }
+            let shown = host.view.frame.height
+            popover.performClose(nil)
+            window.orderOut(nil)
+
+            let drift2 = max(abs(bare.height - popover.contentSize.height),
+                             abs(bare.height - shown))
+            let drift = max(abs(ideal.height - popover.contentSize.height), drift2)
+            worst = max(worst, drift)
+            print(String(format: "%-9@  empty %4.0f -> loaded %4.0f   panel %4.0f   shown %4.0f   drift %.1f",
+                         store.id as NSString, empty,
+                         popover.contentSize.height, bare.height, shown, drift))
+        }
+
+        print(worst < 1 ? "ok: every popover matches its panel"
+                        : "FAIL: popover is \(Int(worst))pt off its panel")
+        exit(worst < 1 ? 0 : 1)
+    }
+
     /// Runs the run loop until the store has data, plus any extra samples a
     /// rate-based glance needs before its numbers are meaningful.
     private static func settle(store: GlanceStore, extraSamples: Int) {

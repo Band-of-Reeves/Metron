@@ -189,6 +189,9 @@ final class DeskWindowController: NSObject, NSWindowDelegate {
             hosting.frame = NSRect(origin: .zero, size: d)
             p.setContentSize(d)
         } else {
+            // Let the hosting view's intrinsic size drive the window, so a
+            // `.full` panel that grows when data lands takes the window with it.
+            hosting.translatesAutoresizingMaskIntoConstraints = false
             p.setContentSize(hosting.fittingSize)
             // A `.full` panel grows once data lands; keep its top-left put
             // rather than letting the window grow upward off the screen.

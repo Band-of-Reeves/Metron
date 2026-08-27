@@ -147,6 +147,10 @@ Metron --render out.png --glance usage  --size full --window
 AppKit (needed for controls `ImageRenderer` can't draw), `--light` for the light
 appearance, `--scale N` for the pixel scale.
 
+`Metron --measure` opens each popover against an offscreen anchor and checks
+that it ends up exactly as tall as the panel inside it — the regression a
+headless run can't screenshot. It exits non-zero if any popover would clip.
+
 ### Adding a glance
 
 Subclass `GlanceStore`, override `load()`, `headline` and `content(_:)`, and add

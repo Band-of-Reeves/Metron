@@ -12,6 +12,9 @@ enum Entry {
         if args.contains("--render") {
             MainActor.assumeIsolated { PreviewRenderer.run(arguments: args) }
         }
+        if args.contains("--measure") {
+            MainActor.assumeIsolated { PreviewRenderer.measure() }
+        }
 
         let app = NSApplication.shared
         let delegate = AppDelegate()
