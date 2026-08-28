@@ -157,6 +157,21 @@ Metron --render out.png --glance usage  --size full --window
 AppKit (needed for controls `ImageRenderer` can't draw), `--light` for the light
 appearance, `--scale N` for the pixel scale.
 
+`./verify.sh` is the short answer to "is it actually working?" — it builds,
+checks every popover against its panel, renders every glance and **asserts on
+the headline rather than on the render succeeding**, and confirms the limit
+cache still has the key the rings read. It exits non-zero on the first real
+failure, so it can be read in one glance instead of audited.
+
+```
+live data
+  ok   usage — 83% (83%)
+  ok   system — 13% (13%)
+```
+
+A glance that renders but has nothing to show is the failure that looks like
+success; that is the one this is built to catch.
+
 `Metron --measure` opens each popover against an offscreen anchor and checks
 that it ends up exactly as tall as the panel inside it — the regression a
 headless run can't screenshot. It exits non-zero if any popover would clip.
