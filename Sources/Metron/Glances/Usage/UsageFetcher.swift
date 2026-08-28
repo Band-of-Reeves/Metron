@@ -100,7 +100,11 @@ enum UsageFetcher {
         var snap = parse(text)
         snap.fetchedAt = Date()
         if snap.windows.isEmpty && snap.error == nil {
-            snap.error = "No limit windows reported — are you on a subscription plan?"
+            // The command ran and exited cleanly; it simply printed no limit
+            // report. Say that, rather than guessing at the account — the old
+            // "are you on a subscription plan?" sent people looking in the
+            // wrong place when the cause was the source going quiet.
+            snap.error = "`/usage` ran but printed no limits."
         }
         return snap
     }

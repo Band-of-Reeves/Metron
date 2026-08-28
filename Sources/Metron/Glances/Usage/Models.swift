@@ -1,8 +1,11 @@
 import Foundation
 
 /// One rate-limit window as reported by `claude -p "/usage"`.
-struct LimitWindow: Identifiable, Equatable {
-    let id = UUID()
+struct LimitWindow: Identifiable, Equatable, Codable {
+    /// Derived from the title rather than a fresh UUID, so a window keeps its
+    /// identity across refreshes — the rings animate instead of being torn
+    /// down and rebuilt, and a snapshot survives a round trip through disk.
+    var id: String { title }
     /// Short label for the ring, e.g. "Session", "Week", "Fable".
     let label: String
     /// Full title as the CLI printed it, e.g. "Current week (all models)".
@@ -18,14 +21,14 @@ struct LimitWindow: Identifiable, Equatable {
 }
 
 /// A named contributor (skill, subagent, MCP server) with its share of usage.
-struct Contributor: Identifiable, Equatable {
-    let id = UUID()
+struct Contributor: Identifiable, Equatable, Codable {
+    var id: String { name }
     let name: String
     let pct: Int
 }
 
 /// The "what's contributing" block for one time span.
-struct Drivers: Equatable {
+struct Drivers: Equatable, Codable {
     var span: String = ""
     var requests: Int = 0
     var sessions: Int = 0
@@ -36,13 +39,17 @@ struct Drivers: Equatable {
 }
 
 /// Everything the `/usage` command told us.
-struct UsageSnapshot: Equatable {
+struct UsageSnapshot: Equatable, Codable {
     var windows: [LimitWindow] = []
     var day: Drivers = Drivers()
     var week: Drivers = Drivers()
     var planNote: String = ""
     var fetchedAt: Date = .distantPast
     var error: String? = nil
+    /// Set when these numbers are being shown because a later fetch came back
+    /// empty. A stale reading beats no reading: the alternative is a blank
+    /// panel every time the source hiccups.
+    var isStale: Bool = false
 
     /// The window closest to its ceiling — what the menu bar should show.
     var mostConstrained: LimitWindow? {

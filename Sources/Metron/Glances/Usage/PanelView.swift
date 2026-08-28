@@ -18,6 +18,9 @@ struct PanelView: View {
                 PanelError(message: err)
             } else {
                 ringRow
+                if store.usage.isStale, let err = store.usage.error {
+                    staleNote(err)
+                }
             }
 
             PanelDivider()
@@ -44,6 +47,21 @@ struct PanelView: View {
         }
         .frame(width: Panel.width)
         .background(.ultraThinMaterial)
+    }
+
+    /// Shown under the rings when the numbers above are a kept reading.
+    private func staleNote(_ message: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: "clock.arrow.circlepath")
+                .font(.system(size: 9.5))
+            Text(message)
+                .font(Theme.rounded(9.5))
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+        }
+        .foregroundStyle(Theme.warn)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 12)
     }
 
     private var ringRow: some View {
