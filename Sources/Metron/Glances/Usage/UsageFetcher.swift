@@ -49,7 +49,44 @@ enum UsageFetcher {
 
     // MARK: - Fetch
 
+    /// `/usage` is slow and, as of this writing, silent. The cache is instant
+    /// and always there, so it is read every refresh; the CLI is consulted
+    /// occasionally, only for the attribution block the cache doesn't carry.
+    private static var lastCLIAttempt: Date = .distantPast
+    private static let cliInterval: TimeInterval = 600
+
     static func fetch() async -> UsageSnapshot {
+        let cached = UsageCache.read()
+
+        var snap = UsageSnapshot()
+        let wantCLI = Date().timeIntervalSince(lastCLIAttempt) >= cliInterval
+        if wantCLI || cached == nil {
+            lastCLIAttempt = Date()
+            snap = await fetchFromCLI()
+        }
+
+        // The cache is the authority for the limit windows: it is the same
+        // account data, and it is there whether or not the command prints.
+        if let cached, !cached.windows.isEmpty {
+            snap.windows = cached.windows
+            snap.error = nil
+            if snap.planNote.isEmpty { snap.planNote = cached.planNote }
+            // Report when these numbers were actually current, not when we
+            // last looked at the file — the cache only moves when Claude Code
+            // runs, and pretending otherwise would be the same dishonesty the
+            // "are you on a subscription plan?" message was.
+            snap.fetchedAt = cached.cachedAt ?? Date()
+        } else {
+            snap.fetchedAt = Date()
+        }
+
+        if snap.windows.isEmpty && snap.error == nil {
+            snap.error = "No limits in ~/.claude.json yet — run Claude Code once."
+        }
+        return snap
+    }
+
+    private static func fetchFromCLI() async -> UsageSnapshot {
         guard let bin = locateClaude() else {
             var s = UsageSnapshot()
             s.error = "Couldn't find the `claude` CLI."
@@ -97,16 +134,7 @@ enum UsageFetcher {
             return s
         }
 
-        var snap = parse(text)
-        snap.fetchedAt = Date()
-        if snap.windows.isEmpty && snap.error == nil {
-            // The command ran and exited cleanly; it simply printed no limit
-            // report. Say that, rather than guessing at the account — the old
-            // "are you on a subscription plan?" sent people looking in the
-            // wrong place when the cause was the source going quiet.
-            snap.error = "`/usage` ran but printed no limits."
-        }
-        return snap
+        return parse(text)
     }
 
     // MARK: - Parsing

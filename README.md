@@ -54,15 +54,25 @@ glyph — the point of a glance is to surface what you'd otherwise learn too lat
 
 | Glance | Source | Covers |
 |---|---|---|
-| Claude usage — rings, drivers | `claude -p "/usage"` | Your account: all devices and claude.ai |
+| Claude usage — rings | `~/.claude.json` (the CLI's own cache) | Your account: all devices and claude.ai |
+| Claude usage — drivers | `claude -p "/usage"` | Your account, when the command prints |
 | Claude usage — heatmap, models | `~/.claude/projects/**/*.jsonl` | Claude Code on **this machine** only |
 | System | Mach and sysctl | This machine |
 | oMLX | `http://127.0.0.1:8000` | The local oMLX server |
 | KatechonOS | `ssh <host> katechon state` | The NAS |
 
-No glance holds a credential of its own. `/usage` is a local slash command that
-makes no model call and reads the same limits endpoint the desktop Usage pane
-uses, so it inherits your existing `claude` CLI authentication. oMLX doesn't ask
+No glance holds a credential of its own. The limit rings come from
+`cachedUsageUtilization` in `~/.claude.json` — Claude Code's own cache of the
+account's utilisation, refreshed whenever it runs. Reading it is instant, needs
+no credential, and does not depend on a slash command choosing to print
+anything: `/usage` went silent in non-interactive mode, and the rings kept
+working because they no longer go through it. The tradeoff is worth stating —
+that cache only moves when Claude Code runs, so if you haven't used it in a day
+the numbers are a day old, and the panel says so rather than pretending.
+
+The Drivers block still comes from `claude -p "/usage"`, which is tried at most
+once every ten minutes and simply leaves that section out when it prints
+nothing. oMLX doesn't ask
 for a key on localhost. KatechonOS goes over ssh, so it uses the key you already
 have. Metron deliberately never reads oMLX's `/admin/api/stats`, which returns
 the server's API key in cleartext — a widget has no business holding one.
