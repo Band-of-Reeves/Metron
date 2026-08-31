@@ -69,6 +69,9 @@ enum PreviewRenderer {
     static func measure() -> Never {
         NSApplication.shared.appearance = NSAppearance(named: .darkAqua)
         var worst = 0.0
+        // A glance measured before its data landed proves nothing. That is the
+        // bug this check used to have, so it is now a failure in its own right.
+        var vacuous: [String] = []
 
         for store in GlanceRegistry.shared.all {
             let popover = NSPopover()
@@ -83,10 +86,16 @@ enum PreviewRenderer {
             host.syncSize()
             let empty = popover.contentSize.height
 
-            // Katechon's ssh probe is slow and offline here; the point of the
-            // check is the growth, which every glance shows.
-            if store.id != "katechon" {
+            // Load the glance before measuring it. A panel with no data is
+            // short, matches its popover trivially, and proves nothing — so
+            // prefer a fixture for any source a headless run cannot reach,
+            // and fall back to the live one only when there is no fixture.
+            let source: String
+            if let fixture = Fixtures.json(for: store.id), store.loadFixture(fixture) {
+                source = "fixture"
+            } else {
                 settle(store: store, extraSamples: store is SystemStore ? 1 : 0)
+                source = "live"
             }
             host.view.layoutSubtreeIfNeeded()
             host.syncSize()
@@ -116,11 +125,17 @@ enum PreviewRenderer {
                              abs(bare.height - shown))
             let drift = max(abs(ideal.height - popover.contentSize.height), drift2)
             worst = max(worst, drift)
-            print(String(format: "%-9@  empty %4.0f -> loaded %4.0f   panel %4.0f   shown %4.0f   drift %.1f",
-                         store.id as NSString, empty,
+            if !store.hasData { vacuous.append(store.id) }
+            print(String(format: "%-9@  %-7@  empty %4.0f -> loaded %4.0f   panel %4.0f   shown %4.0f   drift %.1f",
+                         store.id as NSString, source as NSString, empty,
                          popover.contentSize.height, bare.height, shown, drift))
         }
 
+        if !vacuous.isEmpty {
+            print("FAIL: \(vacuous.joined(separator: ", ")) had no data when measured — "
+                  + "an empty panel matches its popover trivially")
+            exit(1)
+        }
         print(worst < 1 ? "ok: every popover matches its panel"
                         : "FAIL: popover is \(Int(worst))pt off its panel")
         exit(worst < 1 ? 0 : 1)

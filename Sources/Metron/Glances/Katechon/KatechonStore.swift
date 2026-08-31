@@ -27,6 +27,14 @@ final class KatechonStore: GlanceStore {
         }
     }
 
+    override func applyFixture(_ data: Data) -> Bool {
+        guard let s = try? JSONDecoder().decode(KatechonState.self, from: data) else { return false }
+        state = s
+        reachable = true
+        error = nil
+        return true
+    }
+
     override var headline: Headline? {
         guard reachable, let s = state else {
             return Headline(fraction: nil, text: "—", severity: .idle)

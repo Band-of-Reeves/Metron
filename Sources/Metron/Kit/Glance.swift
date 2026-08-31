@@ -116,6 +116,31 @@ class GlanceStore: ObservableObject {
         }
     }
 
+    /// Populate this glance from a canned reading instead of its real source.
+    /// Returns false when the glance has no fixture, which is the default.
+    ///
+    /// Only `--measure` uses this. A glance whose source is unreachable from a
+    /// headless run would otherwise be measured while empty, and an empty
+    /// panel matches its popover trivially — see `Fixtures`.
+    func applyFixture(_ data: Data) -> Bool { false }
+
+    /// Applies a fixture and stamps the glance as loaded, so `hasData` cannot
+    /// tell a fixture apart from a real reading. Measuring is the only caller,
+    /// and it needs both to count the same.
+    final func loadFixture(_ data: Data) -> Bool {
+        guard applyFixture(data) else { return false }
+        updatedAt = Date()
+        return true
+    }
+
+    /// Whether this glance has ever completed a reading. `--measure` asserts on
+    /// it: a panel measured before its data lands is short, matches its popover
+    /// trivially, and proves nothing.
+    ///
+    /// Panel height is not a substitute — the System panel draws its gauges at
+    /// zero and is exactly as tall empty as it is loaded.
+    var hasData: Bool { updatedAt != .distantPast }
+
     private var timer: Timer?
     private var tick: Timer?
     private var inFlight: Task<Void, Never>?
