@@ -1,5 +1,7 @@
 # Metron
 
+<img src="docs/icon.png" alt="" width="88" align="right">
+
 A macOS menu bar app for the numbers you'd otherwise have to go and look up —
 Claude usage limits, this machine, the local oMLX server, the NAS. Each one is
 its own menu bar item and its own desktop widget, so a glance is usually enough.
@@ -193,6 +195,19 @@ Metron --render out.png --glance usage  --size full --window
 `small`, `medium`, `large` or `full`. Add `--window` to render through real
 AppKit (needed for controls `ImageRenderer` can't draw), `--light` for the light
 appearance, `--scale N` for the pixel scale.
+
+The app icon is generated rather than checked in as a binary nobody can edit:
+
+```bash
+swift Tools/make-icon.swift D97757 dist/icon
+cp dist/icon/AppIcon.icns Resources/
+```
+
+It is the menu bar glyph at Dock scale — a ring filled to a fraction on the
+app's own dark surface — so the thing in your menu bar and the thing in Finder
+read as one object. The ring opens up and thickens below 64pt: scaled linearly
+its stroke lands near one pixel at 16pt, and the icon reads as an empty plate
+in a Finder list.
 
 `./verify.sh` is the short answer to "is it actually working?" — it builds,
 checks every popover against its panel, renders every glance and **asserts on

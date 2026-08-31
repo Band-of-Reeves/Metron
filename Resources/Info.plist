@@ -11,6 +11,9 @@
     <key>CFBundleVersion</key><string>1</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <key>NSHighResolutionCapable</key><true/>
+    <!-- build.sh copies Resources/AppIcon.icns in. Without this key macOS
+         ignores it and shows the generic application icon. -->
+    <key>CFBundleIconFile</key><string>AppIcon</string>
     <!-- Menu bar only: no Dock icon, no app switcher entry. -->
     <key>LSUIElement</key><true/>
 </dict>
