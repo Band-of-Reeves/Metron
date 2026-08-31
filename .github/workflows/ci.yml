@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Nothing here needs a secret. `GITHUB_TOKEN` is issued automatically by
+# Actions; there is no signing identity and no notarisation, because the
+# project has neither yet. See docs/release/PLAN.md.
+permissions:
+  contents: write
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: |
+          swift --version
+          xcodebuild -version
+
+      - name: Build (debug)
+        run: swift build
+
+      - name: Test
+        run: swift test
+
+      # verify.sh mostly asserts on live local data — this machine's
+      # ~/.claude.json, an oMLX server on localhost, a NAS over ssh. None of
+      # that exists on a runner, so METRON_VERIFY_CI=1 runs only the two
+      # checks that are true anywhere (the release build, and the popover
+      # geometry) and reports the rest as skipped rather than passing them.
+      - name: Verify (build-only checks)
+        run: METRON_VERIFY_CI=1 ./verify.sh
+
+      - name: Assemble the app bundle
+        run: METRON_UNIVERSAL=1 ./build.sh
+
+      - name: The bundle launches far enough to render
+        run: |
+          dist/Metron.app/Contents/MacOS/Metron --render /tmp/system.png \
+            --glance system --size large
+          test -s /tmp/system.png
+
+      - name: Package
+        run: |
+          mkdir -p artifacts
+          ditto -c -k --keepParent dist/Metron.app artifacts/Metron.zip
+          shasum -a 256 artifacts/Metron.zip | tee artifacts/Metron.zip.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Metron-app
+          path: artifacts/
+          retention-days: 14
+
+  release:
+    name: Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # build.sh reads the tag to stamp the version
+
+      - name: Build the release bundle
+        run: METRON_UNIVERSAL=1 ./build.sh
+
+      - name: Package
+        run: |
+          mkdir -p artifacts
+          ditto -c -k --keepParent dist/Metron.app artifacts/Metron.zip
+          shasum -a 256 artifacts/Metron.zip > artifacts/Metron.zip.sha256
+
+      # The zip is ad-hoc signed and NOT notarised, so Gatekeeper will quarantine
+      # it on download. Say so in the release notes rather than letting people
+      # discover it as "Metron is damaged".
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > notes.md <<'EOF'
+          Universal build (Apple silicon + Intel), macOS 14 or later.
+
+          **This build is ad-hoc signed and not notarised**, so macOS will
+          refuse to open it on first launch. After downloading:
+
+          ```bash
+          unzip Metron.zip
+          xattr -dr com.apple.quarantine Metron.app
+          cp -R Metron.app /Applications/
+          open -a Metron
+          ```
+
+          The `xattr` line strips the quarantine flag macOS attaches to
+          anything downloaded from the internet. If you would rather not run
+          it, build from source instead — `./build.sh` — which produces the
+          same thing without the download.
+          EOF
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
+            --notes-file notes.md \
+            artifacts/Metron.zip artifacts/Metron.zip.sha256

@@ -11,7 +11,7 @@ edit becomes detectable.
 Publish Metron — a macOS menu bar app of independent glances — as the first public repo of the new GitHub organization, with its Claude-usage glance extended into a full Ledger built on the CLI's own stats cache (all-time / 30d / 7d, per model, and the equivalent-API-cost conversion), so that the release is both a working tool and the evidence base for the cost-vs-output argument.
 
 ## Ownership
-<!-- dropo:owners last=FRAGORD-20260831-1529-WATCHMAN.d h=c3e3f64d -->
+<!-- dropo:owners last=FRAGORD-20260831-1540-WATCHMAN h=7fee652c -->
 One owner per path. Anyone not listed owns nothing and may only read. This single table is
 what stops two agents from overwriting each other. You are already in it: whoever ran `init`
 is the one person here who is certainly authorised, and a plan whose first command locks out
@@ -23,10 +23,10 @@ unrestricted — narrow it before a second unit arrives.
 | Watchman | | |
 | LEDGER | `docs/ledger/**`, `Sources/Metron/Glances/Usage/**` |  |
 | AUDIT | `docs/audit/**`, `Tests/**` |  |
-| RELEASE | `docs/release/**`, `.github/**`, `CONTRIBUTING.md`, `CHANGELOG.md` |  |
+| RELEASE | `docs/release/**`, `.github/**`, `CONTRIBUTING.md`, `CHANGELOG.md`, `build.sh`, `verify.sh`, `Package.swift`, `.gitignore`, `README.md` |  |
 
 ## Status
-<!-- dropo:board last=FRAGORD-20260831-1530-WATCHMAN.i h=12aa07e8 -->
+<!-- dropo:board last=FRAGORD-20260831-1539-WATCHMAN.d h=50264481 -->
 Every row names the command that proves it. `dropo verify` runs them. A row that names no
 command is not failing — it is somebody's word, and it will say so.
 
@@ -41,12 +41,14 @@ Full vocabulary: `dropo help board`.*
 |---|---|---|---|
 | this-plan-exists | GREEN | `test -f PLAN.md` | 2026-08-31 |
 | builds | GREEN | `swift build -c release` | 2026-08-31 |
-| tests-exist | RED (expected) | `swift test` | 2026-08-31 |
+| tests-exist | GREEN | `swift test` | 2026-08-31 |
 | live-data-holds | not yet proven | `./verify.sh` ~10m | 2026-08-31 |
 | ledger-spec | not yet proven | `test -f docs/ledger/SPEC.md` | 2026-08-31 |
 | health-audit | not yet proven | `test -f docs/audit/HEALTH.md` | 2026-08-31 |
-| release-plan | not yet proven | `test -f docs/release/PLAN.md` | 2026-08-31 |
+| release-plan | GREEN | `test -f docs/release/PLAN.md` | 2026-08-31 |
 | no-private-paths | not yet proven | `bash docs/audit/no-private-paths.sh` | 2026-08-31 |
+| ci-workflow | GREEN | `test -f .github/workflows/ci.yml` | 2026-08-31 |
+| release-builds-universal | GREEN | `bash docs/release/check-universal.sh` ~3m | 2026-08-31 |
 
 ## Change log
 <!-- dropo:changelog -->
@@ -65,3 +67,8 @@ so two agents changing this at once cannot collide.
 - **FRAGORD-20260831-1530-WATCHMAN.g** — changes ¶board: adds no-private-paths — not yet proven, proved by `bash docs/audit/no-private-paths.sh` — all else in effect.
 - **FRAGORD-20260831-1530-WATCHMAN.h** — changes ¶board: live-data-holds evidence now `./verify.sh` ~10m — all else in effect.
 - **FRAGORD-20260831-1530-WATCHMAN.i** — changes ¶board: drop the placeholder row — all else in effect.
+- **FRAGORD-20260831-1539-WATCHMAN** — changes ¶board: tests-exist RED (expected) → GREEN — all else in effect.
+- **FRAGORD-20260831-1539-WATCHMAN.b** — changes ¶board: release-plan not yet proven → GREEN — all else in effect.
+- **FRAGORD-20260831-1539-WATCHMAN.c** — changes ¶board: adds ci-workflow — GREEN, proved by `test -f .github/workflows/ci.yml` — all else in effect.
+- **FRAGORD-20260831-1539-WATCHMAN.d** — changes ¶board: adds release-builds-universal — GREEN, proved by `bash docs/release/check-universal.sh` ~3m — all else in effect.
+- **FRAGORD-20260831-1540-WATCHMAN** — changes ¶owners: RELEASE — owns +build.sh +verify.sh +Package.swift +.gitignore +README.md — all else in effect.

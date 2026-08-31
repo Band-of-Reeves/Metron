@@ -1,0 +1,65 @@
+name: Bug report
+description: A glance is wrong, blank, stale, or the app misbehaves.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing: an **unreachable** source (oMLX not running, the NAS not
+        answering) is a supported state — the widget should say so on its face.
+        That is only a bug if it blanks the panel, hangs, or lies.
+
+  - type: dropdown
+    id: glance
+    attributes:
+      label: Which glance?
+      options:
+        - Claude usage
+        - System
+        - oMLX
+        - KatechonOS
+        - The menu bar itself
+        - Desktop widgets / window behaviour
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect instead?
+      placeholder: |
+        The session ring shows 0% but `claude` says I'm at 60%.
+    validations:
+      required: true
+
+  - type: textarea
+    id: verify
+    attributes:
+      label: Output of ./verify.sh
+      description: >
+        This answers most of the question on its own. Failures for glances whose
+        sources you don't have are expected — paste it all anyway.
+      render: shell
+
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version and chip
+      placeholder: macOS 15.3, Apple silicon (M2)
+    validations:
+      required: true
+
+  - type: input
+    id: install
+    attributes:
+      label: How did you install it?
+      placeholder: ./build.sh, or the release zip
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: >
+        A screenshot helps — `Metron --render out.png --glance <id> --size full`
+        gets a clean one. Please redact anything you'd rather not publish.

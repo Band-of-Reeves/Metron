@@ -9,6 +9,12 @@ let package = Package(
             name: "Metron",
             path: "Sources/Metron",
             swiftSettings: [.swiftLanguageMode(.v5)]
-        )
+        ),
+        .testTarget(
+            name: "MetronTests",
+            dependencies: ["Metron"],
+            path: "Tests/MetronTests",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
     ]
 )

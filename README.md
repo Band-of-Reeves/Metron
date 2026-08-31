@@ -93,6 +93,22 @@ open -a Metron
 Then, from the ••• menu, turn on **Launch at login**.
 (Launch at login only works from `/Applications`.)
 
+Requires macOS 14 or later. There is nothing to fetch — the package has no
+dependencies.
+
+Prebuilt zips are attached to each [release]. They are universal (Apple silicon
+and Intel) but **ad-hoc signed and not notarised**, so macOS quarantines them on
+download and reports the famously unhelpful *"Metron is damaged"*. Either strip
+the flag —
+
+```bash
+xattr -dr com.apple.quarantine Metron.app
+```
+
+— or just build from source, which never picks up a quarantine flag at all.
+
+[release]: https://github.com/Band-of-Reeves/Metron/releases
+
 ## Desktop widgets
 
 Any glance can live on the desktop in one of four sizes — **Small**, **Medium**
@@ -140,7 +156,10 @@ defaults write com.watchman.metron katechon.baseURL -string "http://localhost:73
 ## Development
 
 ```bash
-swift build -c release
+swift build -c release          # the fast loop
+swift test                      # pure logic; needs no live data
+./build.sh                      # assemble dist/Metron.app
+METRON_UNIVERSAL=1 ./build.sh   # arm64 + x86_64, for something you hand out
 ```
 
 `Metron --render out.png` renders a glance to an image with live data — useful
@@ -172,6 +191,11 @@ live data
 A glance that renders but has nothing to show is the failure that looks like
 success; that is the one this is built to catch.
 
+It will report `FAIL` for glances whose sources you don't have — an oMLX server,
+a NAS — which is expected on any machine but the author's. CI runs
+`METRON_VERIFY_CI=1 ./verify.sh`, which runs the build and geometry checks and
+marks the live-data ones `skip` rather than pretending they passed.
+
 `Metron --measure` opens each popover against an offscreen anchor and checks
 that it ends up exactly as tall as the panel inside it — the regression a
 headless run can't screenshot. It exits non-zero if any popover would clip.
@@ -196,3 +220,12 @@ glances under `Glances/` hold nothing shared.
 - The KatechonOS glance gives up on an unreachable host after 12 seconds.
   `ConnectTimeout` doesn't bound name resolution, and an unresolvable `.local`
   host can otherwise leave `ssh` wedged in mDNS for minutes.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) — it covers what a fresh clone actually
+gives you (only the Claude usage glance is on by default; the others describe
+hardware that probably isn't yours), how to add a glance, and the handful of
+design decisions that are settled. [CHANGELOG.md](CHANGELOG.md) tracks releases.
+
+MIT licensed.

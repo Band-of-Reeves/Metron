@@ -1,4 +1,14 @@
 .build/
 dist/
+
+# Rendered output from `Metron --render`. The two screenshots in docs/ are
+# checked in deliberately; everything else is scratch.
 *.png
 !docs/*.png
+
+# Xcode's per-user state. These carry the checkout owner's username in the
+# path, so they have no business in a public repo.
+.swiftpm/xcode/**/xcuserdata/
+xcuserdata/
+*.xcuserstate
+.DS_Store

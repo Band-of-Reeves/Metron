@@ -1,0 +1,41 @@
+name: Feature request
+description: A reading you wish you could glance at, or a change to one that exists.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A few things are settled and won't change — see
+        [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md#things-that-are-settled).
+        Most relevantly: these are deliberately **not** WidgetKit widgets, and
+        no glance holds a credential of its own.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to be able to see at a glance?
+      description: >
+        What do you currently have to go and look up, and how often?
+    validations:
+      required: true
+
+  - type: textarea
+    id: source
+    attributes:
+      label: Where would the number come from?
+      description: >
+        A file, a localhost port, a command? If it needs a credential, say so —
+        that's the constraint most likely to decide this.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: shape
+    attributes:
+      label: Is this a new glance, or a change to one that exists?
+      options:
+        - A new glance
+        - A change to an existing glance
+        - Not sure
+    validations:
+      required: true
