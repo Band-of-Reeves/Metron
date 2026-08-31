@@ -26,7 +26,7 @@ unrestricted — narrow it before a second unit arrives.
 | RELEASE | `docs/release/**`, `.github/**`, `CONTRIBUTING.md`, `CHANGELOG.md`, `build.sh`, `verify.sh`, `Package.swift`, `.gitignore`, `README.md` |  |
 
 ## Status
-<!-- dropo:board last=FRAGORD-20260831-1544-WATCHMAN h=d9decc58 -->
+<!-- dropo:board last=FRAGORD-20260831-1545-WATCHMAN.b h=5539f162 -->
 Every row names the command that proves it. `dropo verify` runs them. A row that names no
 command is not failing — it is somebody's word, and it will say so.
 
@@ -43,8 +43,8 @@ Full vocabulary: `dropo help board`.*
 | builds | GREEN | `swift build -c release` | 2026-08-31 |
 | tests-exist | GREEN | `swift test` | 2026-08-31 |
 | live-data-holds | not yet proven | `./verify.sh` ~10m | 2026-08-31 |
-| ledger-spec | not yet proven | `test -f docs/ledger/SPEC.md` | 2026-08-31 |
-| health-audit | not yet proven | `test -f docs/audit/HEALTH.md` | 2026-08-31 |
+| ledger-spec | GREEN | `test -f docs/ledger/SPEC.md` | 2026-08-31 |
+| health-audit | GREEN | `test -f docs/audit/HEALTH.md` | 2026-08-31 |
 | release-plan | GREEN | `test -f docs/release/PLAN.md` | 2026-08-31 |
 | no-private-paths | GREEN | `bash docs/audit/no-private-paths.sh` | 2026-08-31 |
 | ci-workflow | GREEN | `test -f .github/workflows/ci.yml` | 2026-08-31 |
@@ -73,3 +73,5 @@ so two agents changing this at once cannot collide.
 - **FRAGORD-20260831-1539-WATCHMAN.d** — changes ¶board: adds release-builds-universal — GREEN, proved by `bash docs/release/check-universal.sh` ~3m — all else in effect.
 - **FRAGORD-20260831-1540-WATCHMAN** — changes ¶owners: RELEASE — owns +build.sh +verify.sh +Package.swift +.gitignore +README.md — all else in effect.
 - **FRAGORD-20260831-1544-WATCHMAN** — changes ¶board: no-private-paths not yet proven → GREEN — all else in effect.
+- **FRAGORD-20260831-1545-WATCHMAN** — changes ¶board: ledger-spec not yet proven → GREEN — all else in effect.
+- **FRAGORD-20260831-1545-WATCHMAN.b** — changes ¶board: health-audit not yet proven → GREEN — all else in effect.
