@@ -117,17 +117,33 @@ $ xcrun notarytool history
 Error: Must provide credentials.
 ```
 
-**There is no Developer ID Application certificate on this machine, and no
-notarytool credentials.** The two identities present are *Apple Development*
-certificates — those sign builds for your own devices during development. They
-cannot sign software for distribution, and Apple will not notarise anything
-signed with one.
+**There is no Developer ID Application certificate on this machine.** The two
+identities present are *Apple Development* certificates — those sign builds for
+your own devices during development. They cannot sign software for
+distribution, and Apple will not notarise anything signed with one.
 
-Getting a Developer ID requires a paid Apple Developer Program membership
-($99/year) and is done from the account holder's own login. **That is the
-owner's to do, not something to automate.**
+That is a fact about this keychain, not about the account. **The membership
+already exists: an organization enrolment under Vessels Publishing, with a
+D-U-N-S number.** An organization enrolment is the good case — the certificate
+is issued to the company, so the signature a user inspects names *Vessels
+Publishing* and no individual.
 
-### Therefore: ship an ad-hoc-signed zip, and be straight about it
+What is missing is one certificate, created from the account holder's own login
+and downloaded into this keychain:
+
+1. developer.apple.com → Certificates, Identifiers & Profiles → Certificates → +
+2. Choose **Developer ID Application** (not Apple Development, not Mac App
+   Distribution — this is the one for software shipped outside the App Store).
+3. Upload a CSR from Keychain Access (Certificate Assistant → Request a
+   Certificate From a Certificate Authority → Saved to disk).
+4. Download the `.cer` and double-click it.
+
+Then `security find-identity -v -p codesigning` lists a *Developer ID
+Application* line, and the notarised path below becomes the primary one. **That
+is the owner's to do — it needs their Apple login, so it is not automatable
+from here.**
+
+### Until that certificate is installed: an ad-hoc-signed zip
 
 This is the path the CI workflow implements.
 
@@ -157,9 +173,14 @@ bundle was never downloaded. For a developer-facing menu bar app, that is a
 perfectly respectable primary install path — and it is what the README already
 documents.
 
-### If and when a Developer ID exists
+### Once the Developer ID certificate is installed — the intended path
 
-Nothing below has been run. These are the exact commands, for later.
+Nothing below has been run. These are the exact commands.
+
+Because the enrolment is an organization, `<redacted>` in the identity string
+is **Vessels Publishing**, and `TEAMID` is that organization's Team ID — read it
+off the `security find-identity` output once the certificate is in place, or
+from the top-right of the developer portal.
 
 ```bash
 # 1. Confirm the identity is present. Look for "Developer ID Application",
@@ -192,6 +213,18 @@ xcrun stapler staple dist/Metron.app
 xcrun stapler validate dist/Metron.app
 rm Metron.zip && ditto -c -k --keepParent dist/Metron.app Metron.zip
 ```
+
+### The org mismatch, and why it needs a line in the README
+
+The GitHub organization is **Band-of-Reeves**; the Apple Developer organization
+is **Vessels Publishing**. Both are the same person's, but nothing in the
+artifact says so. Someone careful enough to check a signature before installing
+a menu bar app will find a name that does not match the repo they downloaded it
+from, and that reads as tampering rather than as two names for one operation.
+
+The fix is one sentence on the release page and in the README, naming the
+expected signer, plus the command to check it. That converts a smell into a
+verification step — the same reason a project publishes a checksum.
 
 A DMG is not worth it here. It buys a drag-to-Applications background image and
 costs an extra `create-dmg` dependency and a second thing to notarise. A zip of

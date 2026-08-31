@@ -93,6 +93,24 @@ open -a Metron
 Then, from the ••• menu, turn on **Launch at login**.
 (Launch at login only works from `/Applications`.)
 
+### Verifying a release build
+
+Releases are signed by **Vessels Publishing** — a different name from the
+Band-of-Reeves organisation this repo lives under, and the same operation. If
+you check a signature before installing something that sits in your menu bar,
+which you should, that mismatch is expected and this is how to confirm it:
+
+```bash
+codesign -dv --verbose=4 /Applications/Metron.app
+```
+
+The `Authority` line reads `Developer ID Application: Vessels Publishing
+(<team id>)`. Anything else — a different name, or `adhoc` on a build you
+downloaded rather than compiled — means you did not get this build, and you
+should not run it.
+
+Building from source, as above, sidesteps the question entirely.
+
 Requires macOS 14 or later. There is nothing to fetch — the package has no
 dependencies.
 
