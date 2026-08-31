@@ -272,7 +272,9 @@ def main() -> int:
     print("=" * W)
     print("METRON LEDGER — reference cost model")
     print("=" * W)
-    print(f"source        {STATS_CACHE}")
+    # Print home-relative: this output is committed, and an absolute
+    # /Users/<name> path is a leak the repo's own scan rejects.
+    print(f"source        ~/{STATS_CACHE.relative_to(Path.home())}")
     print(f"schema        version={cache['version']} "
           f"dailyModelTokensVersion={cache['dailyModelTokensVersion']}")
     print(f"lastComputed  {cache['lastComputedDate']}  "

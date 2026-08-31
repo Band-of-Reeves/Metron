@@ -254,7 +254,7 @@ polish issue, not a crash.
 | `Glances/Usage/UsageCache.swift:18` | `~/.claude.json` | Empty until Claude Code has run once — and `UsageFetcher.swift:84` already says exactly that: *"No limits in ~/.claude.json yet — run Claude Code once."* |
 | `Resources/Info.plist:7` | bundle id `com.watchman.metron` | Harmless, but it is the `defaults` domain, so **every command in the README and CONTRIBUTING must keep using it verbatim.** Renaming it would strand existing installs' settings. Leave it. |
 | `verify.sh` | asserts on all four glances | Reports `FAIL` for sources a stranger doesn't have. CONTRIBUTING now says this is expected. |
-| **No `/Users/watchman` path anywhere** | — | Checked. Clean. |
+| **No `/Users/<you>` path anywhere** | — | Checked. Clean. |
 
 So a stranger who clones, builds and runs gets **Claude usage** (populated if
 they use Claude Code, with a clear message if not) and can turn on **System**,
@@ -281,7 +281,7 @@ Ordered. Everything unchecked is the owner's to do.
 - [x] `.github/ISSUE_TEMPLATE/` — bug report, feature request, config
 - [x] `.github/workflows/ci.yml`, requiring no secrets
 - [x] Test target
-- [x] No `/Users/watchman` paths in tracked source
+- [x] No `/Users/<you>` paths in tracked source
 - [ ] **Decide the abandoned branch.** `widgetkit-desktop-widgets` exists on
       `origin` and is a dead end the README argues against. Either delete it, or
       keep it deliberately — it is genuinely useful evidence for *why* Metron

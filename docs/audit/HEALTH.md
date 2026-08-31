@@ -36,13 +36,13 @@ two partial certificate hashes, in a file that goes public with the repo. None o
 it is needed to explain the signing decision the document is making — the same
 paragraph reads fine as "two Apple Development identities, no Developer ID".
 
-Separately, `docs/ledger/OUTPUT.txt:4` records `/Users/watchman/.claude/stats-cache.json`,
+Separately, `docs/ledger/OUTPUT.txt:4` records `/Users/<you>/.claude/stats-cache.json`,
 which is the absolute-home-path leak the release checklist two files away
 declares already handled:
 
 ```
-docs/release/PLAN.md:257: | **No `/Users/watchman` path anywhere** | — | Checked. Clean. |
-docs/release/PLAN.md:284: - [x] No `/Users/watchman` paths in tracked source
+docs/release/PLAN.md:257: | **No `/Users/<you>` path anywhere** | — | Checked. Clean. |
+docs/release/PLAN.md:284: - [x] No `/Users/<you>` paths in tracked source
 ```
 
 Both files belong to the LEDGER and RELEASE lanes under `PLAN.md`'s ownership
@@ -408,9 +408,9 @@ never published. Current output:
 ```
 absolute home paths
   FAIL absolute home paths in tracked files
-       docs/ledger/OUTPUT.txt:4:source        /Users/watchman/.claude/stats-cache.json
-       docs/release/PLAN.md:257:| **No `/Users/watchman` path anywhere** | — | Checked. Clean. |
-       docs/release/PLAN.md:284:- [x] No `/Users/watchman` paths in tracked source
+       docs/ledger/OUTPUT.txt:4:source        /Users/<you>/.claude/stats-cache.json
+       docs/release/PLAN.md:257:| **No `/Users/<you>` path anywhere** | — | Checked. Clean. |
+       docs/release/PLAN.md:284:- [x] No `/Users/<you>` paths in tracked source
 credentials
   ok   no credential literals
 private network

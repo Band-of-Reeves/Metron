@@ -26,7 +26,7 @@ unrestricted — narrow it before a second unit arrives.
 | RELEASE | `docs/release/**`, `.github/**`, `CONTRIBUTING.md`, `CHANGELOG.md`, `build.sh`, `verify.sh`, `Package.swift`, `.gitignore`, `README.md` |  |
 
 ## Status
-<!-- dropo:board last=FRAGORD-20260831-1539-WATCHMAN.d h=50264481 -->
+<!-- dropo:board last=FRAGORD-20260831-1544-WATCHMAN h=d9decc58 -->
 Every row names the command that proves it. `dropo verify` runs them. A row that names no
 command is not failing — it is somebody's word, and it will say so.
 
@@ -46,7 +46,7 @@ Full vocabulary: `dropo help board`.*
 | ledger-spec | not yet proven | `test -f docs/ledger/SPEC.md` | 2026-08-31 |
 | health-audit | not yet proven | `test -f docs/audit/HEALTH.md` | 2026-08-31 |
 | release-plan | GREEN | `test -f docs/release/PLAN.md` | 2026-08-31 |
-| no-private-paths | not yet proven | `bash docs/audit/no-private-paths.sh` | 2026-08-31 |
+| no-private-paths | GREEN | `bash docs/audit/no-private-paths.sh` | 2026-08-31 |
 | ci-workflow | GREEN | `test -f .github/workflows/ci.yml` | 2026-08-31 |
 | release-builds-universal | GREEN | `bash docs/release/check-universal.sh` ~3m | 2026-08-31 |
 
@@ -72,3 +72,4 @@ so two agents changing this at once cannot collide.
 - **FRAGORD-20260831-1539-WATCHMAN.c** — changes ¶board: adds ci-workflow — GREEN, proved by `test -f .github/workflows/ci.yml` — all else in effect.
 - **FRAGORD-20260831-1539-WATCHMAN.d** — changes ¶board: adds release-builds-universal — GREEN, proved by `bash docs/release/check-universal.sh` ~3m — all else in effect.
 - **FRAGORD-20260831-1540-WATCHMAN** — changes ¶owners: RELEASE — owns +build.sh +verify.sh +Package.swift +.gitignore +README.md — all else in effect.
+- **FRAGORD-20260831-1544-WATCHMAN** — changes ¶board: no-private-paths not yet proven → GREEN — all else in effect.

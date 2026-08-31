@@ -1,7 +1,7 @@
 ==============================================================================
 METRON LEDGER — reference cost model
 ==============================================================================
-source        /Users/watchman/.claude/stats-cache.json
+source        ~/.claude/stats-cache.json
 schema        version=5 dailyModelTokensVersion=5
 lastComputed  2026-08-29  (the cache is written through YESTERDAY; today is scanned live)
 firstSession  2026-06-20T16:31:13.835Z

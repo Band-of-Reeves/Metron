@@ -22,7 +22,7 @@ echo "absolute home paths"
 if hits=$(git grep -nI -E "/Users/[A-Za-z0-9._-]+" -- . "$TEXT" 2>/dev/null); then
   bad "absolute home paths in tracked files"; echo "$hits" | sed 's/^/       /'
 else
-  pass "no /Users/... in tracked files"
+  pass "no absolute home paths in tracked files"
 fi
 
 echo "credentials"
