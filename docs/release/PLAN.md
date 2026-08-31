@@ -166,10 +166,22 @@ dist/Metron.app: rejected
 source=Unnotarized Developer ID
 ```
 
-That last rejection is the expected and only remaining gap: the signature is
-good, the build has not been through Apple's notary service. **Notarising needs
-an app-specific password from appleid.apple.com, so the credential step is the
-owner's.**
+That rejection is now resolved — the build is notarised and stapled:
+
+```
+$ xcrun stapler validate dist/Metron.app
+The validate action worked!
+$ spctl -a -vvv -t exec dist/Metron.app
+dist/Metron.app: accepted
+source=Notarized Developer ID
+origin=Developer ID Application: Vessels Publishing LLC (C7WX7DJYLP)
+```
+
+Credentials are an **App Store Connect API key**, not an Apple ID password —
+the key is a file, so nothing secret is ever typed at a prompt or left in shell
+history. It is a *team* key with the Developer role, valid for any app under
+this team, and it is the same credential an App Store upload would use. Stored
+once as the keychain profile `metron-notary`.
 
 ### The fallback, if a release ever has to ship unsigned
 
