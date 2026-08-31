@@ -1,0 +1,138 @@
+==============================================================================
+METRON LEDGER — reference cost model
+==============================================================================
+source        /Users/watchman/.claude/stats-cache.json
+schema        version=5 dailyModelTokensVersion=5
+lastComputed  2026-08-29  (the cache is written through YESTERDAY; today is scanned live)
+firstSession  2026-06-20T16:31:13.835Z
+sessions      6,049   messages 104,169
+longest       137.6 h (3,591 messages, 2026-08-09)  — duration is MILLISECONDS
+
+------------------------------------------------------------------------------
+ALL-TIME, per model  (exact four-way split from modelUsage)
+------------------------------------------------------------------------------
+model                                       tokens         cost    $/Mtok
+claude-opus-5                       11,682,326,152    $8,840.20     0.757
+claude-fable-5                       3,715,624,350    $6,076.45     1.635
+claude-opus-4-8                      2,040,088,436    $1,654.32     0.811
+claude-sonnet-5                        217,911,306       $82.15     0.377
+claude-opus-4-6                         19,876,428       $22.72     1.143
+claude-haiku-4-5-20251001              117,283,634       $21.97     0.187
+Qwen3.6-27B-Jormungandr-oQ8-Tess-        8,460,004        $0.00     0.000  local
+Qwen3.8-27B-Brainwaves-Tess-oQ4-m          326,269        $0.00     0.000  local
+TOTAL                               17,801,896,579   $16,697.80
+
+  breakdown of the total:
+    claude-opus-5                    in      465,236  out   42,388,382  read 11,298,875,959  write  340,596,575
+    claude-fable-5                   in       28,831  out   12,921,563  read  3,552,464,502  write  150,209,454
+    claude-opus-4-8                  in    1,268,199  out   10,096,139  read  1,962,426,895  write   66,297,203
+    claude-sonnet-5                  in        4,854  out    1,221,124  read    205,124,715  write   11,560,613
+
+------------------------------------------------------------------------------
+WINDOWS  (daily figures ESTIMATED — see caveat below)
+------------------------------------------------------------------------------
+  all-time (71 d span, 33 active)       $16,697.80
+  last 30 days  2026-07-31 .. 2026-08-29          $15,865.30
+  last 7 days   2026-08-23 .. 2026-08-29           $7,616.90
+  peak day      2026-08-22                          $2,324.63
+
+  cost / calendar day (all-time)                $235.18
+  cost / active day  (all-time)                 $505.99
+  cost / day (last 30)                          $528.84
+  cost / day (last 7)                         $1,088.13
+
+------------------------------------------------------------------------------
+VERSUS A $200/MONTH SUBSCRIPTION
+------------------------------------------------------------------------------
+  subscription paid over 71 days            $466.53
+  equivalent API cost                        $16,697.80
+  MULTIPLE                                        35.8x
+
+  last 30 days vs one month                       79.3x
+  peak day alone vs one month                     11.6x
+  break-even: the subscription pays for itself after 0.38 days of
+  usage at the last-30-day rate.
+
+------------------------------------------------------------------------------
+30-DAY, per model (estimated)
+------------------------------------------------------------------------------
+  claude-opus-5                               $8,820.25    55.6%
+  claude-fable-5                              $5,821.74    36.7%
+  claude-opus-4-8                             $1,120.95     7.1%
+  claude-sonnet-5                                $82.15     0.5%
+  claude-haiku-4-5-20251001                      $20.21     0.1%
+  Qwen3.6-27B-Jormungandr-oQ8-Tess-mtp            $0.00     0.0%
+  Qwen3.8-27B-Brainwaves-Tess-oQ4-mtp             $0.00     0.0%
+
+------------------------------------------------------------------------------
+PER-DAY (estimated), most recent 14 active days
+------------------------------------------------------------------------------
+  2026-08-16        $1.60  
+  2026-08-17       $49.63  
+  2026-08-18      $217.35  ####
+  2026-08-19       $70.84  #
+  2026-08-20       $29.76  
+  2026-08-21      $874.50  #################
+  2026-08-22    $2,324.63  ##############################################
+  2026-08-23    $1,488.18  #############################
+  2026-08-24      $689.18  #############
+  2026-08-25    $2,093.48  #########################################
+  2026-08-26      $725.53  ##############
+  2026-08-27    $1,112.86  ######################
+  2026-08-28      $752.96  ##############
+  2026-08-29      $754.71  ##############
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ACCURACY CAVEAT
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  All-time per-model figures above are EXACT: modelUsage carries a real
+  four-way split (input / output / cache-read / cache-write).
+
+  Every DAILY figure — the 30d and 7d windows, cost-per-day, and the peak
+  day — is an ESTIMATE. dailyModelTokens.tokensByModel is a single fused
+  number per model per day: input + output + cacheRead + cacheCreation
+  summed together (verified against modelUsage: ratio 1.0000 for every
+  model). Recovering a cost from it requires assuming the day had the
+  model's all-time average mix. Output tokens cost 50x a cache read, so
+  an unusually output-heavy day is understated and a cache-read-heavy
+  day is overstated.
+
+  Cache writes are priced at the 5-minute rate (1.25x input) because
+  modelUsage does not record the TTL. Claude Code uses 1-hour caching
+  (2x input) in places, so this UNDERSTATES the true figure.
+
+  Both approximations disappear if you read ~/.claude/projects/**/*.jsonl
+  instead: those records carry a true per-message four-way split AND the
+  usage.cache_creation TTL breakdown. Run with --transcripts.
+
+==============================================================================
+EXACT SCAN of ~/.claude/projects/**/*.jsonl
+==============================================================================
+  scanned 6,917 transcript files, 35 distinct UTC days
+  clipped to <= 2026-08-29 to match the cache watermark: 33 days
+  cache writes: 196,476,288 at 5m, 451,987,661 at 1h (69.7% at the 2x rate) — invisible to stats-cache
+
+  token reconciliation, transcripts vs modelUsage (all-time):
+    model                              transcripts      modelUsage   ratio
+    claude-opus-5                   12,742,102,477  11,682,326,152   1.091
+    claude-fable-5                   3,864,707,016   3,715,624,350   1.040
+    claude-opus-4-8                  2,087,644,025   2,040,088,436   1.023
+    claude-sonnet-5                    217,911,306     217,911,306   1.000
+    claude-opus-4-6                     19,876,428      19,876,428   1.000
+    claude-haiku-4-5                   117,283,634     117,283,634   1.000
+    Qwen3.6-27B-Jormungandr-oQ8-T        8,460,004       8,460,004   1.000
+    Qwen3.8-27B-Brainwaves-Tess-o          326,269         326,269   1.000
+
+window                      estimated          exact       delta
+all-time                   $16,697.80     $20,268.38       17.6%
+last 30 days               $15,865.30     $18,976.10       16.4%
+last 7 days                 $7,616.90      $8,879.58       14.2%
+peak day                    $2,324.63      $2,998.18       22.5%
+
+  exact peak day: 2026-08-25  $2,998.18
+  exact multiple vs $200/mo over 71 days: 43.4x
+
+  Note: the transcript scan can exceed the stats-cache figure because
+  transcripts on disk may predate or outlive what the cache covers,
+  and it can fall short because Claude Code prunes old transcripts
+  while the cache keeps the aggregate forever.
