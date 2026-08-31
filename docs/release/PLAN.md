@@ -117,19 +117,22 @@ $ xcrun notarytool history
 Error: Must provide credentials.
 ```
 
-**There is no Developer ID Application certificate on this machine.** The two
-identities present are *Apple Development* certificates — those sign builds for
-your own devices during development. They cannot sign software for
-distribution, and Apple will not notarise anything signed with one.
+**The Developer ID Application certificate is installed**, alongside the two
+*Apple Development* certificates that cannot sign for distribution:
 
-That is a fact about this keychain, not about the account. **The membership
-already exists: an organization enrolment under Vessels Publishing, with a
-D-U-N-S number.** An organization enrolment is the good case — the certificate
-is issued to the company, so the signature a user inspects names *Vessels
-Publishing* and no individual.
+```
+3) 7F2FBB32… "Developer ID Application: Vessels Publishing LLC (C7WX7DJYLP)"
+```
 
-What is missing is one certificate, created from the account holder's own login
-and downloaded into this keychain:
+An organization enrolment is the good case — the certificate is issued to the
+company, so the signature a user inspects names *Vessels Publishing LLC* and no
+individual.
+
+For the record, this is how it was created — Xcode does the CSR dance for you,
+and needs no project open:
+
+**Xcode → Settings → Accounts → the team → Manage Certificates → + → Developer
+ID Application.** The portal route, if Xcode does not offer it:
 
 1. developer.apple.com → Certificates, Identifiers & Profiles → Certificates → +
 2. Choose **Developer ID Application** (not Apple Development, not Mac App
@@ -138,12 +141,37 @@ and downloaded into this keychain:
    Certificate From a Certificate Authority → Saved to disk).
 4. Download the `.cer` and double-click it.
 
-Then `security find-identity -v -p codesigning` lists a *Developer ID
-Application* line, and the notarised path below becomes the primary one. **That
-is the owner's to do — it needs their Apple login, so it is not automatable
-from here.**
+### Verified on this machine
 
-### Until that certificate is installed: an ad-hoc-signed zip
+A signed universal build, and what it produces:
+
+```
+$ METRON_UNIVERSAL=1 \
+  METRON_SIGN_ID="Developer ID Application: Vessels Publishing LLC (C7WX7DJYLP)" \
+  ./build.sh
+
+$ lipo -archs dist/Metron.app/Contents/MacOS/Metron
+x86_64 arm64
+$ codesign --verify --deep --strict dist/Metron.app
+dist/Metron.app: valid on disk
+dist/Metron.app: satisfies its Designated Requirement
+$ codesign -dv --verbose=4 dist/Metron.app
+Authority=Developer ID Application: Vessels Publishing LLC (C7WX7DJYLP)
+Authority=Developer ID Certification Authority
+Authority=Apple Root CA
+Timestamp=Aug 31, 2026 at 5:06:11 PM
+TeamIdentifier=C7WX7DJYLP
+$ spctl -a -vvv -t exec dist/Metron.app
+dist/Metron.app: rejected
+source=Unnotarized Developer ID
+```
+
+That last rejection is the expected and only remaining gap: the signature is
+good, the build has not been through Apple's notary service. **Notarising needs
+an app-specific password from appleid.apple.com, so the credential step is the
+owner's.**
+
+### The fallback, if a release ever has to ship unsigned
 
 This is the path the CI workflow implements.
 
@@ -173,14 +201,9 @@ bundle was never downloaded. For a developer-facing menu bar app, that is a
 perfectly respectable primary install path — and it is what the README already
 documents.
 
-### Once the Developer ID certificate is installed — the intended path
+### Notarising — the remaining step
 
-Nothing below has been run. These are the exact commands.
-
-Because the enrolment is an organization, `<redacted>` in the identity string
-is **Vessels Publishing**, and `TEAMID` is that organization's Team ID — read it
-off the `security find-identity` output once the certificate is in place, or
-from the top-right of the developer portal.
+Steps 1–3 are done and shown above. Steps 4–6 need the owner's Apple ID.
 
 ```bash
 # 1. Confirm the identity is present. Look for "Developer ID Application",
@@ -189,7 +212,7 @@ security find-identity -v -p codesigning
 
 # 2. Sign, with hardened runtime — notarisation requires it.
 METRON_UNIVERSAL=1 \
-METRON_SIGN_ID="Developer ID Application: <redacted> (TEAMID)" \
+METRON_SIGN_ID="Developer ID Application: Vessels Publishing LLC (C7WX7DJYLP)" \
   ./build.sh
 
 # 3. Verify the signature is accepted for distribution.
@@ -201,7 +224,7 @@ spctl -a -vvv -t exec dist/Metron.app
 #    password. Better still, an App Store Connect API key (--key/--key-id/--issuer),
 #    which is what CI would need.
 xcrun notarytool store-credentials "metron-notary" \
-  --apple-id "you@example.com" --team-id "TEAMID" --password "app-specific-password"
+  --apple-id "<your apple id>" --team-id "C7WX7DJYLP" --password "app-specific-password"
 
 # 5. Notarise the zip and wait for the verdict.
 ditto -c -k --keepParent dist/Metron.app Metron.zip
@@ -217,7 +240,7 @@ rm Metron.zip && ditto -c -k --keepParent dist/Metron.app Metron.zip
 ### The org mismatch, and why it needs a line in the README
 
 The GitHub organization is **Band-of-Reeves**; the Apple Developer organization
-is **Vessels Publishing**. Both are the same person's, but nothing in the
+is **Vessels Publishing LLC**. Both are the same person's, but nothing in the
 artifact says so. Someone careful enough to check a signature before installing
 a menu bar app will find a name that does not match the repo they downloaded it
 from, and that reads as tampering rather than as two names for one operation.

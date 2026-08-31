@@ -97,19 +97,20 @@ Then, from the ••• menu, turn on **Launch at login**.
 
 ### Verifying a release build
 
-Releases are signed by **Vessels Publishing** — a different name from the
-Band-of-Reeves organisation this repo lives under, and the same operation. If
-you check a signature before installing something that sits in your menu bar,
-which you should, that mismatch is expected and this is how to confirm it:
+Releases are signed by **Vessels Publishing LLC** (Team ID `C7WX7DJYLP`) — a
+different name from the Band-of-Reeves organisation this repo lives under, and
+the same operation. If you check a signature before installing something that
+sits in your menu bar, which you should, that mismatch is expected, and this is
+how to confirm it:
 
 ```bash
 codesign -dv --verbose=4 /Applications/Metron.app
 ```
 
-The `Authority` line reads `Developer ID Application: Vessels Publishing
-(<team id>)`. Anything else — a different name, or `adhoc` on a build you
-downloaded rather than compiled — means you did not get this build, and you
-should not run it.
+The `Authority` line reads `Developer ID Application: Vessels Publishing LLC
+(C7WX7DJYLP)`, and `TeamIdentifier` is `C7WX7DJYLP`. Anything else — a different
+name, or `adhoc` on a build you downloaded rather than compiled — means you did
+not get this build, and you should not run it.
 
 Building from source, as above, sidesteps the question entirely.
 
