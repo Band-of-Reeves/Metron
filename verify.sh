@@ -48,6 +48,8 @@ if [[ "$CI_MODE" == 1 ]]; then
   skip "usage, system, oMLX, KatechonOS — no local data on a CI runner"
   echo "limit source"
   skip "~/.claude.json — CI has never run Claude Code"
+  echo "ledger sources"
+  skip "transcripts vs stats-cache — neither exists on a CI runner"
   echo
   echo "build-only checks passed (METRON_VERIFY_CI=1)"
   exit $fail
@@ -103,6 +105,18 @@ sys.exit(0 if isinstance(lim, list) and lim else 1)' 2>/dev/null; then
   pass "~/.claude.json carries utilization.limits"
 else
   bad "~/.claude.json has no utilization.limits — rings will fall back to /usage"
+fi
+
+echo "ledger sources"
+# The Ledger quotes the transcripts and calls the CLI's stats roll-up a lagging
+# summary of them. That is a claim about two files on this disk, so it gets a
+# command rather than a sentence: every settled day must agree to the token.
+if out=$(bash docs/ledger/reconcile.sh 2>&1); then
+  pass "$(grep -o '[0-9]*/[0-9]* settled days agree to the token' <<<"$out")"
+  grep 'late-written' <<<"$out" | sed 's/^ */       /'
+else
+  bad "transcripts and stats-cache disagree on a settled day"
+  grep -E 'MISMATCH|unexplained' <<<"$out" | sed 's/^ */       /'
 fi
 
 rm -rf "$tmp"
