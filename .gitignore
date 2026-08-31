@@ -12,3 +12,7 @@ dist/
 xcuserdata/
 *.xcuserstate
 .DS_Store
+
+# Release artifacts belong on the release page, not in the history.
+Metron.zip
+Metron.zip.sha256
