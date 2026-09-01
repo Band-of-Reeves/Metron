@@ -26,7 +26,7 @@ unrestricted — narrow it before a second unit arrives.
 | RELEASE | `docs/release/**`, `.github/**`, `CONTRIBUTING.md`, `CHANGELOG.md`, `build.sh`, `verify.sh`, `Package.swift`, `.gitignore`, `README.md` |  |
 
 ## Status
-<!-- dropo:board last=FRAGORD-20260831-1806-WATCHMAN h=4728d652 -->
+<!-- dropo:board last=FRAGORD-20260831-2007-WATCHMAN h=dae285a4 -->
 Every row names the command that proves it. `dropo verify` runs them. A row that names no
 command is not failing — it is somebody's word, and it will say so.
 
@@ -53,6 +53,7 @@ Full vocabulary: `dropo help board`.*
 | popover-sizing | GREEN | `.build/release/Metron --measure` ~2m | 2026-08-31 |
 | signed-build | GREEN | `bash docs/release/check-signature.sh` | 2026-08-31 |
 | notarised | GREEN | `xcrun stapler validate dist/Metron.app` | 2026-08-31 |
+| ledger-glance | GREEN | `swift test --filter Ledger` ~3m | 2026-08-31 |
 
 ## Change log
 <!-- dropo:changelog -->
@@ -83,3 +84,4 @@ so two agents changing this at once cannot collide.
 - **FRAGORD-20260831-1657-WATCHMAN** — changes ¶board: adds popover-sizing — GREEN, proved by `.build/release/Metron --measure` ~2m — all else in effect.
 - **FRAGORD-20260831-1706-WATCHMAN** — changes ¶board: adds signed-build — GREEN, proved by `bash docs/release/check-signature.sh` — all else in effect.
 - **FRAGORD-20260831-1806-WATCHMAN** — changes ¶board: adds notarised — GREEN, proved by `xcrun stapler validate dist/Metron.app` — all else in effect.
+- **FRAGORD-20260831-2007-WATCHMAN** — changes ¶board: adds ledger-glance — GREEN, proved by `swift test --filter Ledger` ~3m — all else in effect.

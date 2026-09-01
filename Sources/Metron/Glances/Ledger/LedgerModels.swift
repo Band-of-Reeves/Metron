@@ -104,7 +104,7 @@ struct LedgerReading: Equatable {
         for day in days(in: window) {
             for (m, t) in day.byModel { totals[m, default: TokenSplit()] += t }
         }
-        return totals.map { model, tokens in
+        return totals.filter { $0.value.total > 0 }.map { model, tokens in
             let (_, confidence) = Pricing.rate(for: model)
             return ModelCost(model: model, tokens: tokens,
                              cost: Pricing.cost(of: tokens, model: model),

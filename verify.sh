@@ -80,6 +80,7 @@ check_glance() {
   pass "$id — ${head#headline: }"
 }
 check_glance usage  ring
+check_glance ledger any
 check_glance system ring
 check_glance omlx   any
 check_glance katechon any

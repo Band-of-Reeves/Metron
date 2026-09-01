@@ -26,6 +26,7 @@ final class GlanceRegistry: ObservableObject {
 
         all = [
             UsageStore(),
+            LedgerStore(),
             SystemStore(),
             OMLXStore(),
             KatechonStore(),

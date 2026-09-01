@@ -59,6 +59,9 @@ func compactDuration(_ interval: TimeInterval) -> String {
 
 func compactTokens(_ n: Int) -> String {
     switch n {
+    // The Ledger counts cache reads, which run to billions — "15003.8M" is a
+    // number nobody can read at a glance.
+    case 1_000_000_000...: return String(format: "%.1fB", Double(n) / 1_000_000_000)
     case 1_000_000...: return String(format: "%.1fM", Double(n) / 1_000_000)
     case 1_000...:     return String(format: "%.0fk", Double(n) / 1_000)
     default:           return "\(n)"

@@ -71,32 +71,54 @@ actor TokenLedgerScanner {
         return days
     }
 
+    /// Parses one transcript.
+    ///
+    /// Works on bytes, not `String`. A 1.2 GB corpus of 260k lines took 21
+    /// seconds through `String.contains` and `line.data(using:)` — Swift's
+    /// String comparison is grapheme-aware, and re-encoding every line to
+    /// `Data` for JSONSerialization pays for the whole file twice. Scanning
+    /// the UTF-8 directly and handing JSONSerialization a slice of the buffer
+    /// it already has removes both.
     private func aggregate(url: URL, size: Int, modified: Date,
                            cal: Calendar) -> FileAggregate? {
-        guard let text = try? String(contentsOf: url, encoding: .utf8) else { return nil }
+        guard let data = try? Data(contentsOf: url, options: .mappedIfSafe) else { return nil }
         var agg = FileAggregate(size: size, modified: modified)
-        let iso = ISO8601DateFormatter()
-        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let isoPlain = ISO8601DateFormatter()
-        isoPlain.formatOptions = [.withInternetDateTime]
 
-        for line in text.split(separator: "\n", omittingEmptySubsequences: true) {
-            // Cheap reject before paying for JSON parsing: the overwhelming
-            // majority of transcript lines carry no usage at all.
-            guard line.contains("\"usage\"") else { continue }
-            guard let data = line.data(using: .utf8),
-                  let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+        // Local-day lookup keyed by the timestamp's "yyyy-MM-ddTHH" prefix, so
+        // 96k records cost a few hundred calendar operations rather than 96k.
+        var dayCache: [String: Date] = [:]
+
+        let newline = UInt8(0x0A)
+        let needle = Array("\"usage\"".utf8)
+
+        var lineStart = data.startIndex
+        while lineStart < data.endIndex {
+            let lineEnd = data[lineStart...].firstIndex(of: newline) ?? data.endIndex
+            defer { lineStart = lineEnd < data.endIndex ? lineEnd + 1 : data.endIndex }
+            guard lineEnd > lineStart else { continue }
+            let line = data[lineStart..<lineEnd]
+            guard contains(line, needle) else { continue }
+
+            guard let obj = try? JSONSerialization.jsonObject(with: line) as? [String: Any],
                   obj["type"] as? String == "assistant",
                   let message = obj["message"] as? [String: Any],
-                  let usage = message["usage"] as? [String: Any]
+                  let usage = message["usage"] as? [String: Any],
+                  let stamp = obj["timestamp"] as? String,
+                  stamp.count >= 13
             else { continue }
+
+            let key = String(stamp.prefix(13))
+            let day: Date
+            if let hit = dayCache[key] {
+                day = hit
+            } else if let parsed = Self.localDay(fromISOHourPrefix: key, cal: cal) {
+                dayCache[key] = parsed
+                day = parsed
+            } else {
+                continue
+            }
 
             let model = message["model"] as? String ?? "unknown"
-            guard let stamp = obj["timestamp"] as? String,
-                  let date = iso.date(from: stamp) ?? isoPlain.date(from: stamp)
-            else { continue }
-            let day = cal.startOfDay(for: date)
-
             var split = TokenSplit()
             split.input = usage["input_tokens"] as? Int ?? 0
             split.output = usage["output_tokens"] as? Int ?? 0
@@ -109,9 +131,9 @@ actor TokenLedgerScanner {
             if let creation = usage["cache_creation"] as? [String: Any] {
                 split.cacheWrite5m = creation["ephemeral_5m_input_tokens"] as? Int ?? 0
                 split.cacheWrite1h = creation["ephemeral_1h_input_tokens"] as? Int ?? 0
-                // Trust the fused figure if the parts do not add up to it.
-                let parts = split.cacheWrite5m + split.cacheWrite1h
-                if parts == 0 && fusedWrite > 0 { split.cacheWrite5m = fusedWrite }
+                if split.cacheWrite5m + split.cacheWrite1h == 0 && fusedWrite > 0 {
+                    split.cacheWrite5m = fusedWrite
+                }
             } else {
                 split.cacheWrite5m = fusedWrite
             }
@@ -123,5 +145,52 @@ actor TokenLedgerScanner {
             agg.byDayModel[day, default: [:]][model, default: TokenSplit()] += split
         }
         return agg
+    }
+
+    /// Substring search over raw bytes.
+    private func contains(_ haystack: Data, _ needle: [UInt8]) -> Bool {
+        guard haystack.count >= needle.count, let first = needle.first else { return false }
+        let limit = haystack.endIndex - needle.count
+        var i = haystack.startIndex
+        while i <= limit {
+            if haystack[i] == first {
+                var match = true
+                for k in 1..<needle.count where haystack[i + k] != needle[k] {
+                    match = false
+                    break
+                }
+                if match { return true }
+            }
+            i += 1
+        }
+        return false
+    }
+
+    /// "2026-08-25T02" -> the local day that instant falls in.
+    ///
+    /// Claude Code writes UTC. Bucketing by the UTC date would put late-evening
+    /// work on the wrong day for anyone west of Greenwich, so the instant is
+    /// reconstructed and then handed to the local calendar — the same thing
+    /// `TranscriptScanner` does, so the two glances agree about what "today" is.
+    static func localDay(fromISOHourPrefix key: String, cal: Calendar) -> Date? {
+        let chars = Array(key.utf8)
+        guard chars.count >= 13 else { return nil }
+        func num(_ range: Range<Int>) -> Int? {
+            var v = 0
+            for i in range {
+                let c = chars[i]
+                guard c >= 48, c <= 57 else { return nil }
+                v = v * 10 + Int(c - 48)
+            }
+            return v
+        }
+        guard let year = num(0..<4), let month = num(5..<7),
+              let dayNum = num(8..<10), let hour = num(11..<13) else { return nil }
+        var utc = Calendar(identifier: .gregorian)
+        utc.timeZone = TimeZone(secondsFromGMT: 0)!
+        var comps = DateComponents()
+        comps.year = year; comps.month = month; comps.day = dayNum; comps.hour = hour
+        guard let instant = utc.date(from: comps) else { return nil }
+        return cal.startOfDay(for: instant)
     }
 }
